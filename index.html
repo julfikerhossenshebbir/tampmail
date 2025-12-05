@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JHS Temp Mail</title>
+    <!-- Tailwind CSS & Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+        .glass-effect {
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Sidebar (Email Info & Inbox) -->
+    <aside class="w-full md:w-80 bg-gray-900 text-white flex flex-col shadow-2xl z-20">
+        <!-- Logo Area -->
+        <div class="p-6 border-b border-gray-800 flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-lg">T</div>
+            <h1 class="text-xl font-bold tracking-wide">Temp<span class="text-blue-500">Mail</span></h1>
+        </div>
+
+        <!-- Current Email Section -->
+        <div class="p-5 bg-gray-800 border-b border-gray-700">
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-2 font-semibold">Your Temporary Email</p>
+            
+            <div class="relative group">
+                <div id="emailDisplay" class="bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-green-400 font-mono break-all cursor-pointer transition hover:border-blue-500 flex items-center justify-between" onclick="copyEmail()">
+                    <span id="emailText">Generating...</span>
+                    <!-- Copy Icon -->
+                    <svg class="w-4 h-4 text-gray-500 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </div>
+                <!-- Tooltip -->
+                <div id="copyTooltip" class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1 px-2 rounded opacity-0 transition-opacity duration-200 pointer-events-none">Copied!</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 flex gap-2">
+                <button onclick="checkMail(true)" class="flex-1 bg-gray-700 hover:bg-gray-600 text-xs py-2 rounded transition flex items-center justify-center gap-1 border border-gray-600">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Refresh
+                </button>
+                <button onclick="createNewIdentity()" class="flex-1 bg-red-900/50 hover:bg-red-900/80 text-red-200 border border-red-800 text-xs py-2 rounded transition flex items-center justify-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    New Email
+                </button>
+            </div>
+        </div>
+
+        <!-- Inbox List -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div class="px-5 py-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
+                <span class="text-xs font-bold text-gray-400">INBOX MESSAGES</span>
+                <span id="loadingIndicator" class="loader opacity-0 transition-opacity"></span>
+            </div>
+            
+            <div id="inboxList" class="flex-1 overflow-y-auto p-2 space-y-1">
+                <!-- Javascript will load items here -->
+                <div class="text-center mt-20 text-gray-600 text-sm flex flex-col items-center">
+                    <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span>Waiting for incoming mail...</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content (Email Preview) -->
+    <main class="flex-1 bg-gray-50 relative flex flex-col h-full">
+        <!-- Header for Mobile -->
+        <div class="md:hidden bg-white p-4 shadow flex justify-between items-center">
+            <h2 class="font-bold text-gray-800">Reading Pane</h2>
+            <span class="text-xs text-gray-500">View Only</span>
+        </div>
+
+        <!-- Placeholder State -->
+        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 bg-gray-50">
+            <div class="bg-white p-6 rounded-full shadow-lg mb-4">
+                <svg class="w-16 h-16 text-blue-100" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path></svg>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-600">Select a message</h2>
+            <p class="text-sm text-gray-400 mt-2">Click on an email from the left sidebar to read it.</p>
+        </div>
+
+        <!-- Header Info (When email is selected) -->
+        <div id="msgHeader" class="bg-white border-b px-8 py-5 shadow-sm hidden z-20">
+            <h2 id="msgSubject" class="text-xl font-bold text-gray-800 mb-1">Subject Here</h2>
+            <div class="flex items-center gap-2 text-sm">
+                <span class="text-gray-500">From:</span>
+                <span id="msgSender" class="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Sender Name</span>
+                <span class="text-gray-300">|</span>
+                <span id="msgDate" class="text-gray-400">Time</span>
+            </div>
+        </div>
+
+        <!-- Iframe Content -->
+        <div class="flex-1 relative bg-white">
+            <iframe id="emailFrame" class="w-full h-full border-0 absolute inset-0"></iframe>
+        </div>
+    </main>
+
+    <!-- Javascript Logic -->
+    <script>
+        // --- CONFIGURATION ---
+        const API_URL = 'https://api.mdjhs.com/';
+        const API_KEY = 'your_secret_master_key';
+        // ---------------------
+
+        let currentEmail = null;
+        let refreshTimer = null;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedEmail = localStorage.getItem('jhs_temp_mail');
+            if (savedEmail) {
+                setEmail(savedEmail);
+            } else {
+                generateEmail();
+            }
+        });
+
+        // 1. Generate Email
+        async function generateEmail() {
+            updateUIState('generating');
+            try {
+                const res = await fetch(`${API_URL}?action=gen_email&key=${API_KEY}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    localStorage.setItem('jhs_temp_mail', data.data.email);
+                    setEmail(data.data.email);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                document.getElementById('emailText').innerText = "Connection Failed";
+            }
+        }
+
+        // 2. Set Email & Start Polling
+        function setEmail(email) {
+            currentEmail = email;
+            document.getElementById('emailText').innerText = email;
+            updateUIState('ready');
+            
+            // Clear Inbox View
+            document.getElementById('inboxList').innerHTML = '';
+            showEmptyState();
+
+            // Start Polling
+            if (refreshTimer) clearInterval(refreshTimer);
+            checkMail(); // Immediate check
+            refreshTimer = setInterval(checkMail, 5000); // Check every 5s
+        }
+
+        // 3. Check Inbox
+        async function checkMail(manual = false) {
+            if (!currentEmail) return;
+            
+            const loader = document.getElementById('loadingIndicator');
+            if(manual) loader.classList.remove('opacity-0');
+
+            try {
+                const res = await fetch(`${API_URL}?action=get_messages&email=${currentEmail}&key=${API_KEY}`);
+                const data = await res.json();
+
+                if (data.status === 'success' && data.data.messages.length > 0) {
+                    renderInbox(data.data.messages);
+                } else if (data.data.messages.length === 0) {
+                     // Keep waiting state if empty
+                }
+            } catch (e) { console.log('Polling error...'); }
+            
+            if(manual) setTimeout(() => loader.classList.add('opacity-0'), 500);
+        }
+
+        // 4. Render Inbox Items
+        function renderInbox(messages) {
+            const list = document.getElementById('inboxList');
+            // Check if we need to re-render (simple check based on count)
+            // For a smoother experience, you might want to diff the lists, but full render is fine for now
+            
+            list.innerHTML = messages.map(msg => `
+                <div onclick="readMessage('${msg.id}', '${escapeHtml(msg.sender)}', '${escapeHtml(msg.subject)}', '${msg.date}')" 
+                     class="group bg-gray-800 hover:bg-gray-700 p-4 rounded-lg cursor-pointer border-l-4 border-blue-500 transition-all shadow-sm hover:shadow-md mb-2 mx-1">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-bold text-sm text-gray-200 truncate w-2/3 group-hover:text-white">${msg.sender}</span>
+                        <span class="text-[10px] text-gray-500 bg-gray-900 px-1.5 py-0.5 rounded">${formatTime(msg.date)}</span>
+                    </div>
+                    <div class="text-xs text-gray-400 truncate group-hover:text-gray-300">${msg.subject}</div>
+                </div>
+            `).join('');
+        }
+
+        // 5. Read Message
+        async function readMessage(id, sender, subject, date) {
+            // Update Header
+            document.getElementById('msgSubject').innerText = subject;
+            document.getElementById('msgSender').innerText = sender;
+            document.getElementById('msgDate').innerText = date;
+            
+            // Toggle Views
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('msgHeader').classList.remove('hidden');
+
+            // Load Content
+            const iframe = document.getElementById('emailFrame');
+            // Show loading inside iframe
+            iframe.contentWindow.document.body.innerHTML = '<div style="font-family:sans-serif;text-align:center;padding:50px;color:#888;">Loading message content...</div>';
+
+            try {
+                const res = await fetch(`${API_URL}?action=read_message&id=${id}&key=${API_KEY}`);
+                const data = await res.json();
+                if(data.status === 'success') {
+                    iframe.contentWindow.document.open();
+                    iframe.contentWindow.document.write(data.data.content);
+                    iframe.contentWindow.document.close();
+                }
+            } catch (e) {
+                alert("Failed to load message");
+            }
+        }
+
+        // 6. Delete & New
+        function createNewIdentity() {
+            if(confirm("Are you sure? This will delete your current inbox forever.")) {
+                localStorage.removeItem('jhs_temp_mail');
+                generateEmail();
+            }
+        }
+
+        // Utilities
+        function copyEmail() {
+            const text = document.getElementById('emailText').innerText;
+            if (!text.includes('@')) return;
+
+            // Try the modern API first, use fallback if it fails (like in iframes)
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => showTooltip())
+                    .catch((err) => {
+                        console.warn('Clipboard API failed, trying fallback', err);
+                        fallbackCopyText(text);
+                    });
+            } else {
+                fallbackCopyText(text);
+            }
+        }
+
+        // Fallback for restricted environments (iframes/http)
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed"; 
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showTooltip();
+            } catch (err) {
+                console.error('Fallback: Unable to copy', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showTooltip() {
+            const tooltip = document.getElementById('copyTooltip');
+            tooltip.classList.remove('opacity-0');
+            setTimeout(() => tooltip.classList.add('opacity-0'), 2000);
+        }
+
+        function updateUIState(state) {
+            const display = document.getElementById('emailText');
+            if(state === 'generating') display.innerText = "Creating Identity...";
+        }
+
+        function showEmptyState() {
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('msgHeader').classList.add('hidden');
+            document.getElementById('emailFrame').contentWindow.document.body.innerHTML = "";
+            document.getElementById('inboxList').innerHTML = `
+                <div class="text-center mt-20 text-gray-600 text-sm flex flex-col items-center">
+                    <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span>Waiting for incoming mail...</span>
+                </div>`;
+        }
+
+        function formatTime(dateString) {
+            const d = new Date(dateString);
+            return d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+                      </html>
