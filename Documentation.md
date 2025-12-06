@@ -8,7 +8,7 @@ The JHS Temp Mail API allows developers to create temporary email systems for we
 You must have a valid API Key to access the API.
 
 Request your API Key:  
-https://mdjhs.com/
+https://jhs.one/
 
 ---
 
@@ -504,7 +504,7 @@ If you exceed limits you may receive rate-limit errors — implement exponential
 ---
 
 # 📞 Need an API Key?
-https://mdjhs.com/
+https://jhs.one/
 
 ---
 
