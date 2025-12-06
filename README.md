@@ -473,10 +473,10 @@ Error
 
 ---
 
-# 📞 Need an API Key?
+📞 Need an API Key?
 https://jhs.one/
 
-# 😎 Admin Website:
+😎 Admin Website:
 https://mdjhs.com/ 
 
 # ✅ End of Documentation
