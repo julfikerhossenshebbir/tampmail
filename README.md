@@ -10,6 +10,9 @@ You must have a valid API Key to access the API.
 Request your API Key:  
 https://jhs.one/
 
+Admin Website:
+https://mdjhs.com/
+
 ---
 
 ## 🌐 Base URL
@@ -89,11 +92,6 @@ Read the HTML body or full content of a specific message.
 
 Endpoint: action=read_message
 
-Parameters:
-- action: read_message
-- id: Message ID
-- key: API Key
-
 Example Request
 ```http
 GET https://api.mdjhs.com/?action=read_message&id=55&key=YOUR_API_KEY
@@ -140,34 +138,6 @@ Error
 | Email Not Found   | Email does not exist or has expired          |
 | Message Not Found | Message ID is invalid or message deleted     |
 
----
-
-# 🚩 Rate Limits (Important)
-To avoid abuse, follow these limits (server-enforced):
-
-| Action         | Recommended Limit             |
-|----------------|-------------------------------|
-| Generate Email | Max 1 request per 3 seconds   |
-| Get Messages   | Refresh every 5–10 seconds    |
-| Read Message   | Normal usage allowed          |
-
-If you exceed limits you may receive rate-limit errors — implement exponential backoff when polling.
-
----
-
-# 🔧 Workflow Diagram
-
-```
-[Generate Email]
-       ↓
-[Get Messages Every 5–10s]
-       ↓
-[New Message Arrived?] → Yes → [Read Message Content]
-       ↓
-      End
-```
-
----
 
 # 💻 Example: Full Frontend Integration (HTML + JS)
 
@@ -506,16 +476,8 @@ If you exceed limits you may receive rate-limit errors — implement exponential
 # 📞 Need an API Key?
 https://jhs.one/
 
----
-
-# 📝 Notes & Best Practices
-- Temporary emails automatically expire after a system-defined time; store any needed content elsewhere if necessary.
-- Avoid polling too frequently — follow the recommended refresh intervals.
-- Always check the "status" field before processing data.
-- Implement proper error handling and exponential backoff.
-- Sanitize and escape message contents when rendering HTML in clients.
-
----
+# 😎 Admin Website:
+https://mdjhs.com/ 
 
 # ✅ End of Documentation
 
