@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Message, UserCredentials } from '../types';
 
 interface SidebarProps {
@@ -18,12 +18,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showKey, setShowKey] = useState(false);
+  const keyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (keyTimeoutRef.current) clearTimeout(keyTimeoutRef.current);
+    };
+  }, []);
 
   const copyToClipboard = (text: string, field: string) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleKeyClick = () => {
+    if (!credentials) return;
+    
+    // Copy
+    copyToClipboard(credentials.accessKey, 'key');
+    
+    // Reveal
+    setShowKey(true);
+    
+    // Reset timer
+    if (keyTimeoutRef.current) clearTimeout(keyTimeoutRef.current);
+    keyTimeoutRef.current = setTimeout(() => {
+        setShowKey(false);
+    }, 3500);
   };
 
   const formatSenderName = (sender: string) => {
@@ -98,15 +123,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Key Row */}
           <div 
-             onClick={() => credentials && copyToClipboard(credentials.accessKey, 'key')}
-             className="flex items-center justify-between cursor-pointer"
+             onClick={handleKeyClick}
+             className="flex items-center justify-between cursor-pointer group/key"
           >
              <div className="min-w-0">
                <div className="flex items-center gap-2 mb-0.5">
                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Access Key</span>
                  {copiedField === 'key' && <span className="text-[10px] font-bold text-green-500 animate-fade-in">Copied!</span>}
                </div>
-               <div className="text-sm font-semibold truncate text-slate-700 dark:text-slate-200 font-mono select-all">
+               <div className={`text-sm font-semibold truncate text-slate-700 dark:text-slate-200 font-mono transition-all duration-300 ${showKey ? 'select-all blur-0' : 'select-none blur-[4px] opacity-60'}`}>
                  {credentials?.accessKey || '...'}
                </div>
              </div>
